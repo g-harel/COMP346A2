@@ -24,17 +24,22 @@ class BlockStack
 	/**
 	 * Current size of the stack
 	 */
-	public int iSize = DEFAULT_SIZE;
+	private int iSize = DEFAULT_SIZE;
 
 	/**
 	 * Current top of the stack
 	 */
-	public int iTop  = 3;
+	private int iTop  = 3;
 
 	/**
 	 * stack[0:5] with four defined values
 	 */
-	public char acStack[] = new char[] {'a', 'b', 'c', 'd', '$', '$'};
+	private char acStack[] = new char[] {'a', 'b', 'c', 'd', '$', '$'};
+
+	/**
+	 *
+	 */
+	private int stackAccessCounter = 0;
 
 	/**
 	 * Default constructor
@@ -48,9 +53,7 @@ class BlockStack
 	 */
 	public BlockStack(final int piSize)
 	{
-
-
-                if(piSize != DEFAULT_SIZE)
+		if(piSize != DEFAULT_SIZE)
 		{
 			this.acStack = new char[piSize];
 
@@ -62,7 +65,7 @@ class BlockStack
 			this.acStack[piSize - 2] = this.acStack[piSize - 1] = '$';
 
 			this.iTop = piSize - 3;
-                        this.iSize = piSize;
+			this.iSize = piSize;
 		}
 	}
 
@@ -72,6 +75,7 @@ class BlockStack
 	 */
 	public char pick()
 	{
+		++stackAccessCounter;
 		return this.acStack[this.iTop];
 	}
 
@@ -79,29 +83,74 @@ class BlockStack
 	 * Returns arbitrary value from the stack array
 	 * @return the element, char
 	 */
-	public char getAt(final int piPosition)
+	public char getAt(final int piPosition) throws BoundaryViolation
 	{
+		++stackAccessCounter;
+		if (piPosition >= this.acStack.length || piPosition < 0) {
+		    throw new BoundaryViolation("Requested index out of stack boundaries." + piPosition + " " + this.acStack.length);
+    }
 		return this.acStack[piPosition];
 	}
 
 	/**
 	 * Standard push operation
 	 */
-	public void push(final char pcBlock)
+	public void push(final char pcBlock) throws BoundaryViolation
 	{
-		this.acStack[++this.iTop] = pcBlock;
+		++stackAccessCounter;
+		if (this.isEmpty()) {
+			this.acStack[0] = 'a';
+		} else if (iSize == this.MAX_SIZE) {
+		  throw new BoundaryViolation("Max stack size reached, cannot push more values");
+    } else {
+			this.acStack[++this.iTop] = pcBlock;
+		}
 	}
 
 	/**
 	 * Standard pop operation
 	 * @return ex-top element of the stack, char
 	 */
-	public char pop()
+	public char pop() throws BoundaryViolation
 	{
+		++stackAccessCounter;
+		if (this.isEmpty()) {
+		    throw new BoundaryViolation("Cannot pop values from empty stack.");
+    }
 		char cBlock = this.acStack[this.iTop];
 		this.acStack[this.iTop--] = '$'; // Leave prev. value undefined
 		return cBlock;
 	}
+
+	public int getITop() {
+		return this.iTop;
+	}
+
+	public int getISize() {
+		return this.iSize;
+	}
+
+	public int getAccessCounter() {
+		return this.stackAccessCounter;
+	}
+
+	public boolean isEmpty() {
+		return (this.iTop == -1);
+	}
+
+    /**
+     * custom exception to handle boundary violations
+     */
+    class BoundaryViolation extends Exception
+    {
+        public BoundaryViolation() {}
+
+        public BoundaryViolation(String message)
+        {
+            super(message);
+        }
+    }
+
 }
 
 // EOF
